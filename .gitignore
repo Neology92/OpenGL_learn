@@ -1,0 +1,9 @@
+# ignore executable file
+program
+a.out 
+
+# ignore .o files
+*.o
+
+# ignore my vscode preferences
+.vscode/
