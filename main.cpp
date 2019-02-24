@@ -27,18 +27,31 @@ int main(void)
 		exit(EXIT_FAILURE);
 		fprintf(stderr, "Err: GLEW!");
 	}
+	// glfwSwapInterval(1);
 
-	glfwSwapInterval(1);
 
+	float positions[6] = {
+		-0.5, -0.5,
+		 0.0,  0.5,
+		 0.5, -0.5
+	};
+	unsigned int buffer;
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, 6*sizeof(float), positions, GL_STATIC_DRAW);
 
+	// Window loop
 	while(!glfwWindowShouldClose(window))
 	{
-
+		// Render
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		//Swap buffers and taking events
+		//Swap front and back buffers
 		glfwSwapBuffers(window);
+
+		// Poll for and process events
 		glfwPollEvents();
 
 	}
