@@ -1,28 +1,28 @@
 #include <iostream>
-#include <GL/glew.h>
+// #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <math.h>
 
 using namespace std;
 
-void loopColors(float *r, float *g, float *b, bool *back)
+void changeColors(float *r, float *g, float *b, bool *back, float push)
 {
 		if(*r <= 0.99 && !*back)
-		*r += 0.01;
+		*r += push;
 		else if ( *g <= 0.99 && !*back)
-		*g += 0.01;
+		*g += push;
 		else if ( *b <= 0.99 && !*back)
-		*b += 0.01;
+		*b += push;
 		else
 		{
 			*back = 1;
 
-			if (*r >= 0.01)
-			*r -= 0.01;
-			else if (*b >= 0.01)
-			*b -= 0.01;
-			else if (*g >= 0.01)
-			*g -= 0.01;
+			if (*r >= push)
+			*r -= push;
+			else if (*b >= push)
+			*b -= push;
+			else if (*g >= push)
+			*g -= push;
 			else
 			{
 				*back = 0;
@@ -32,7 +32,7 @@ void loopColors(float *r, float *g, float *b, bool *back)
 		// cout << "R: " << *r << ", G: " << *g << ", B: " << *b << endl;
 }
 
-void moveAndBounce(float *x, float *y, float *s_x, float *s_y, float r)
+void moveAndBounce(float *x, float *y, float *s_x, float *s_y, float r, float ratio)
 {
 
 	
@@ -47,14 +47,14 @@ void moveAndBounce(float *x, float *y, float *s_x, float *s_y, float r)
 			*s_x = abs(*s_x);
 		}
 
-		if( *y + r > 1)
+		if( (*y + r)*ratio > 1)
 		{	
-			*y = 0.999 - r;
+			// *y = 0.999 - r*ratio;
 			*s_y = -abs(*s_y);
 		}
-		else if (*y - r < -1)
+		else if ((*y - r)*ratio < -1)
 		{
-			*y = -0.999 + r;
+			// *y = -0.999 + r;
 			*s_y = abs(*s_y);
 
 		}
@@ -71,18 +71,16 @@ void moveAndBounce(float *x, float *y, float *s_x, float *s_y, float r)
 int main(void)
 {
 
-	if (!glfwInit())
-	{
+	if (!glfwInit()){
 		exit(EXIT_FAILURE);
 	}
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	// glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-	GLFWwindow *window = glfwCreateWindow(1000, 480, "Feakin' nice widows name!", NULL, NULL );
+	GLFWwindow *window = glfwCreateWindow(640, 480, "Feakin' nice widows name!", NULL, NULL );
 
-	if(!window)
-	{
+	if(!window){
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
@@ -91,14 +89,19 @@ int main(void)
 	glfwSwapInterval(1);
 
 
-	float radius = 0.2;
+	float radius = 0.1;
 
-	// Colors
+	// Colors of circle
 	float r = 0.0;
 	float g = 0.0;
 	float b = 0.0;
-
 	bool back = 0;
+
+	// Colors of Square
+	float rs = 0.0;
+	float gs = 0.0;
+	float bs = 0.0;
+	bool back2 = 0;
 
 	// Coordinates and movement
 	float x = 0.0, y = 0.0;
@@ -117,7 +120,7 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// myWhim about Colors
-		loopColors(&r, &g, &b, &back);
+		changeColors(&r, &g, &b, &back, 0.01);
 
 		// Some weird Modulo Stuff with Colors
 		// r = fmod( r , 1);
@@ -125,21 +128,39 @@ int main(void)
 		// b = fmod( b , 1);
 
 		// Movement
-		moveAndBounce(&x, &y, &speed_x, &speed_y, radius);
-
-
+		moveAndBounce(&x, &y, &speed_x, &speed_y, radius, ratio);
 
 		//Draw
+		
+			//Koło
 		glColor3f(r, g, b);
 		glBegin(GL_POLYGON);
 			for(int i = 0; i<=360; i++)
 			{
 				float angle = i * M_PI/180;
-				glVertex2f(cos(angle)*radius+x, sin(angle)*radius+y);
+				glVertex2f(cos(angle)*radius+x, (sin(angle)*radius+y)*ratio);
+
+				// Square 
+				if(cos(angle)*radius+x > -0.3 && cos(angle)*radius+x < 0.3 
+				&& sin(angle)*radius+y > -0.3 && sin(angle)*radius+y < 0.3)
+				{
+					changeColors(&rs, &gs, &bs, &back2, 0.0001);
+				}
+
 			}
 
 		glEnd();
 
+			//Square
+		glColor3f(rs, gs, bs);
+		glBegin(GL_QUADS);
+
+			glVertex2f(-0.3,  0.3*ratio);
+			glVertex2f(	0.3,  0.3*ratio);
+			glVertex2f( 0.3, -0.3*ratio);
+			glVertex2f(-0.3, -0.3*ratio);
+
+		glEnd();
 
 		//Swap buffers and taking events
 		glfwSwapBuffers(window);
