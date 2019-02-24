@@ -9,12 +9,7 @@ int main(void)
 	// Init GLFW
 	if (!glfwInit()){
 		exit(EXIT_FAILURE);
-		fprintf(stderr, "Problem with GLFW!");
-	}
-	// Init GLEW
-	if (glewInit()==GLEW_OK){
-		exit(EXIT_FAILURE);
-		fprintf(stderr, "Problem with GLEW!");
+		fprintf(stderr, "Err: GLFW!");
 	}
 
 	// Let's create window
@@ -25,8 +20,14 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 
-
 	glfwMakeContextCurrent(window);
+
+	// Init GLEW
+	if (glewInit() != GLEW_OK){
+		exit(EXIT_FAILURE);
+		fprintf(stderr, "Err: GLEW!");
+	}
+
 	glfwSwapInterval(1);
 
 
