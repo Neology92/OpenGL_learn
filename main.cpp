@@ -2,37 +2,51 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <fstream>
+#include <string>
+#include <sstream>
+
 using namespace std;
 
-string createVertexShader()
+enum class shaderMode
 {
-	string str = 
-	"#version 330 core\n"
-	"\n"
-	"layout(location = 0) in vec3 pos;\n"
-	"\n"
-	"void main()\n"
-	"{\n"
-	"	gl_Position = vec4(pos.x, pos.y, pos.z, 1.0f);\n"
-	"}\n\0";
+	NONE = -1,
+	VERTEX = 0,
+	FRAGMENT = 1
+};
 
-	return str;
-}
-
-string createFragmentShader(float r, float g, float b)
+struct shaderProgramSource
 {
+	string VertexSource;
+	string FragmentSource;
+};
 
-	string str = 
-	"#version 330 core\n"
-	"\n"
-	"out vec4 color;\n"
-	"\n"
-	"void main()\n"
-	"{\n"
-	"	color = vec4("+ to_string(r)+", "+ to_string(g)+", "+ to_string(b)+", 1.0f);\n"
-	"}\n\0";
 
-	return str;
+static shaderProgramSource parseShader(const string &filePath)
+{
+	ifstream stream(filePath);
+
+	string line;
+	stringstream ss[2];
+	shaderMode type = shaderMode::NONE;
+	while(getline(stream, line))
+	{
+		if(line.find("#shader") != string::npos)
+		{
+			if(line.find("vertex") != string::npos)
+				type = shaderMode::VERTEX;
+			else if(line.find("fragment") != string::npos)
+				type = shaderMode::FRAGMENT;
+		
+		}
+		else
+		{
+			ss[(int)type] << line << endl;
+		}
+		
+	}
+
+	return {ss[0].str(), ss[1].str()};
 }
 
 static unsigned int CompileShader(unsigned int type, const string &source)
@@ -170,13 +184,11 @@ int main(void)
     glBindVertexArray(0); // Unbind VAO
 
 
-	string vertexShader = createVertexShader();
-	string fragmentShaderRed = createFragmentShader(1.0, 0.0, 0.0);
-	string fragmentShaderBlue = createFragmentShader(0.0, 0.0, 1.0);
 
+	shaderProgramSource source = parseShader("res/shaders/Basic.shader");
+	
 
-	unsigned int shaderRed = CreateShader(vertexShader, fragmentShaderRed);
-	unsigned int shaderBlue = CreateShader(vertexShader, fragmentShaderBlue);
+	unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
 
 	// Window loop
 	while(!glfwWindowShouldClose(window))
@@ -186,15 +198,14 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT);
 
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		// glDrawArrays(GL_TRIANGLES, 0, 3); <----------Without EBO
 
-		glUseProgram(shaderRed);
+		glUseProgram(shader);
 		glBindVertexArray(VAOs[0]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		glUseProgram(shaderBlue);
 		glBindVertexArray(VAOs[1]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -210,8 +221,7 @@ int main(void)
 
     glDeleteVertexArrays(2, VAOs);
     glDeleteBuffers(2, VBOs);
-	glDeleteProgram(shaderRed);
-	glDeleteProgram(shaderBlue);
+	glDeleteProgram(shader);
 
  	glfwTerminate();
 
